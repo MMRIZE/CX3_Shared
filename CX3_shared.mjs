@@ -525,7 +525,7 @@ const isPastDay = (d) => {
 const isFutureDay = (d) => {
   let tm = new Date()
   let end = (new Date(tm.getTime())).setHours(23, 59, 59, 999)
-  return d.getTime() > start
+  return d.getTime() > end
 }
 
 /**
