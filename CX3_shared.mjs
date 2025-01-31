@@ -507,6 +507,28 @@ const isToday = (d) => {
 }
 
 /**
+ * is before today
+ * @param {Date} d
+ * @returns boolean true if the given date is before today
+ */
+const isPastDay = (d) => {
+  let tm = new Date()
+  let start = (new Date(tm.getTime())).setHours(0, 0, 0, 0)
+  return d.getTime() < start
+}
+
+/**
+ * is after today
+ * @param {Date} d
+ * @returns boolean true if the given date is after today
+ */
+const isFutureDay = (d) => {
+  let tm = new Date()
+  let end = (new Date(tm.getTime())).setHours(23, 59, 59, 999)
+  return d.getTime() > end
+}
+
+/**
  * is this month
  * @param {Date} d
  * @returns boolean true if the given date is this month
@@ -688,6 +710,8 @@ export {
   prepareMagic,
   displayLegend,
   isToday,
+  isPastDay,
+  isFutureDay,
   isThisMonth,
   isThisYear,
   isWeekend,
