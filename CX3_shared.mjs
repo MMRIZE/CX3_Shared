@@ -78,7 +78,7 @@ const regularizeEvents = ({ eventPool, config }) => {
   }
 
   if (typeof config.preProcessor === 'function') {
-    temp = temp.map(config.preProcessor)
+    temp = temp.map(config.preProcessor).filter(ev => ev != null)
   }
   //rollback
   return temp.map((ev) => {
