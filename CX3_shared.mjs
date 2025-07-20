@@ -78,7 +78,10 @@ const regularizeEvents = ({ eventPool, config }) => {
   }
 
   if (typeof config.preProcessor === 'function') {
-    temp = temp.map(config.preProcessor).filter(ev => ev != null)
+    // Apply custom preprocessing function to each event
+    temp = temp.map(config.preProcessor)
+    // Remove any null/undefined events that may have been filtered out by the preprocessor
+    temp = temp.filter(ev => ev != null)
   }
   //rollback
   return temp.map((ev) => {
