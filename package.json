@@ -1,6 +1,6 @@
 {
   "name": "cx3_shared",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "CX3 Shared library",
   "main": "CX3_Shared.mjs",
   "scripts": {
