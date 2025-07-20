@@ -4,9 +4,9 @@
   "description": "CX3 Shared library",
   "main": "CX3_Shared.mjs",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "test": "node --run lint",
+    "lint": "eslint",
+    "lint:fix": "eslint --fix"
   },
   "repository": {
     "type": "git",
