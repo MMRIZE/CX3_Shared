@@ -335,9 +335,22 @@ const formatEvents = ({ original, config }) => {
 
   const thisMoment = new Date()
 
+  // Helper function to convert UTC timestamps to local time
+  const convertToLocalTime = (timestamp) => {
+    // Google Calendar events are typically stored in UTC
+    // Convert to local time by creating a new Date object with UTC components in local timezone
+    const utcDate = new Date(timestamp)
+    const localDate = new Date(utcDate.getUTCFullYear(), utcDate.getUTCMonth(), utcDate.getUTCDate(), 
+                              utcDate.getUTCHours(), utcDate.getUTCMinutes(), utcDate.getUTCSeconds())
+    
+    return localDate.getTime()
+  }
+
   let events = original.map((ev) => {
-    ev.startDate = +ev.startDate
-    ev.endDate = +ev.endDate
+    // Convert UTC timestamps to local time if needed
+    ev.startDate = convertToLocalTime(+ev.startDate)
+    ev.endDate = convertToLocalTime(+ev.endDate)
+    
     ev.isPassed = isPassed(ev)
     ev.isCurrent = isCurrent(ev)
     ev.isFuture = isFuture(ev)
@@ -352,7 +365,8 @@ const formatEvents = ({ original, config }) => {
     let et = new Date(+ev.endDate)
     if (et.getHours() === 0 && et.getMinutes() === 0 && et.getSeconds() === 0 && et.getMilliseconds() === 0) ev.endDate = ev.endDate - 1
     ev.isMultiday = isMultiday(ev)
-    ev.today = thisMoment.toISOString().split('T')[ 0 ] === new Date(+ev.startDate).toISOString().split('T')[ 0 ]
+    // Fix: Use consistent local date comparison instead of UTC
+    ev.today = thisMoment.toLocaleDateString("en-CA") === new Date(+ev.startDate).toLocaleDateString("en-CA")
     ev.hash = simpleHash(ev.title + ev.startDate + ev.endDate)
     return ev
   }).toSorted((a, b) => {
