@@ -41,6 +41,27 @@ const convertVarious2UnixTime = (unknown) => {
 }
 
 /**
+ * Convert potentially object-based iCal property to string
+ * Some iCal parsers return objects like {val: "text", params: {...}} instead of plain strings
+ * @param {any} value - The value to convert (string, object, or other)
+ * @returns {string} - The string representation
+ */
+const ensureString = (value) => {
+  if (!value) return ''
+  if (typeof value === 'string') return value
+  if (typeof value === 'object') {
+    // Try common property names used by iCal parsers
+    if (value.val !== undefined) return String(value.val)
+    if (value.value !== undefined) return String(value.value)
+    if (value.text !== undefined) return String(value.text)
+    // If it's an object but none of the above, log it for debugging
+    console.warn('CX3_shared.ensureString: Unexpected object format for event property:', value)
+    return String(value)
+  }
+  return String(value)
+}
+
+/**
  * Filter events by calendarSet
  * @param {array} events
  * @param {array} calendarSet
@@ -130,11 +151,11 @@ const renderEventDefault = (event) => {
   e.dataset.calendarSeq = event?.calendarSeq ?? 0
   event.calendarName ? (e.dataset.calendarName = event.calendarName) : null
   e.dataset.color = event.color
-  e.dataset.description = event.description || ''
+  e.dataset.description = ensureString(event.description)
   e.dataset.title = event.title
   e.dataset.fullDayEvent = event.fullDayEvent
   e.dataset.geo = event.geo
-  e.dataset.location = event.location || ''
+  e.dataset.location = ensureString(event.location)
   e.dataset.startDate = event.startDate
   e.dataset.endDate = event.endDate
   e.dataset.today = event.today
@@ -237,11 +258,11 @@ const renderEventJournal = (event, { useSymbol, eventTimeOptions, eventDateOptio
 
   let description = document.createElement('div')
   description.classList.add('description')
-  description.innerHTML = event.description || ''
+  description.innerHTML = ensureString(event.description)
   e.appendChild(description)
   let location = document.createElement('div')
   location.classList.add('location')
-  location.innerHTML = event.location || ''
+  location.innerHTML = ensureString(event.location)
   e.appendChild(location)
 
   return e
@@ -289,11 +310,11 @@ const renderEventAgenda = (event, {useSymbol, eventTimeOptions, locale, useIconi
   e.appendChild(headline)
   let description = document.createElement('div')
   description.classList.add('description')
-  description.innerHTML = event.description || ''
+  description.innerHTML = ensureString(event.description)
   e.appendChild(description)
   let location = document.createElement('div')
   location.classList.add('location')
-  location.innerHTML = event.location || ''
+  location.innerHTML = ensureString(event.location)
   e.appendChild(location)
 
   return e
