@@ -41,24 +41,37 @@ const convertVarious2UnixTime = (unknown) => {
 }
 
 /**
- * Convert potentially object-based iCal property to string
- * Some iCal parsers return objects like {val: "text", params: {...}} instead of plain strings
- * @param {any} value - The value to convert (string, object, or other)
- * @returns {string} - The string representation
+ * Normalize unknown event text payload to a displayable string.
+ * Handles nested objects from some calendar providers (e.g. Outlook via iCloud)
+ * which may return structured objects instead of plain strings for title,
+ * description, and location fields.
+ * @param {any} value
+ * @param {Set<object>} seen - used internally to detect circular references
+ * @returns {string}
  */
-const ensureString = (value) => {
-  if (!value) return ''
+const normalizeEventText = (value, seen = new Set()) => {
+  if (value === null || value === undefined || value === false) return ''
   if (typeof value === 'string') return value
-  if (typeof value === 'object') {
-    // Try common property names used by iCal parsers
-    if (value.val !== undefined) return String(value.val)
-    if (value.value !== undefined) return String(value.value)
-    if (value.text !== undefined) return String(value.text)
-    // If it's an object but none of the above, log it for debugging
-    console.warn('CX3_shared.ensureString: Unexpected object format for event property:', value)
-    return String(value)
+  if (typeof value === 'number' || typeof value === 'bigint') return String(value)
+  if (Array.isArray(value)) {
+    return value.map((v) => normalizeEventText(v, seen)).filter(Boolean).join(', ')
   }
-  return String(value)
+  if (typeof value === 'object') {
+    if (seen.has(value)) return ''
+    seen.add(value)
+    const preferredKeys = ['value', 'val', 'text', 'plain', 'label', 'name', 'title']
+    for (const key of preferredKeys) {
+      if (Object.prototype.hasOwnProperty.call(value, key)) {
+        return normalizeEventText(value[key], seen)
+      }
+    }
+    if (Object.prototype.hasOwnProperty.call(value, 'params')) return ''
+    const flattened = Object.values(value).map((v) => normalizeEventText(v, seen)).filter(Boolean)
+    if (!flattened.length) return ''
+    if (flattened.length === 1) return flattened[0]
+    return flattened.join(' | ')
+  }
+  return ''
 }
 
 /**
@@ -151,11 +164,11 @@ const renderEventDefault = (event) => {
   e.dataset.calendarSeq = event?.calendarSeq ?? 0
   event.calendarName ? (e.dataset.calendarName = event.calendarName) : null
   e.dataset.color = event.color
-  e.dataset.description = ensureString(event.description)
-  e.dataset.title = event.title
+  e.dataset.description = normalizeEventText(event.description)
+  e.dataset.title = normalizeEventText(event.title)
   e.dataset.fullDayEvent = event.fullDayEvent
   e.dataset.geo = event.geo
-  e.dataset.location = ensureString(event.location)
+  e.dataset.location = normalizeEventText(event.location)
   e.dataset.startDate = event.startDate
   e.dataset.endDate = event.endDate
   e.dataset.today = event.today
@@ -220,7 +233,7 @@ const renderEvent = (event, options) => {
 
   const t = document.createElement('span')
   t.classList.add('title', 'eventTitle')
-  t.innerHTML = event.title
+  t.textContent = normalizeEventText(event.title)
   e.appendChild(t)
   return e
 }
@@ -240,7 +253,7 @@ const renderEventJournal = (event, { useSymbol, eventTimeOptions, eventDateOptio
 
   const title = document.createElement('div')
   title.classList.add('title')
-  title.innerHTML = event.title
+  title.textContent = normalizeEventText(event.title)
   headline.appendChild(title)
   e.appendChild(headline)
 
@@ -263,11 +276,11 @@ const renderEventJournal = (event, { useSymbol, eventTimeOptions, eventDateOptio
 
   const description = document.createElement('div')
   description.classList.add('description')
-  description.innerHTML = ensureString(event.description)
+  description.textContent = normalizeEventText(event.description)
   e.appendChild(description)
   const location = document.createElement('div')
   location.classList.add('location')
-  location.innerHTML = ensureString(event.location)
+  location.textContent = normalizeEventText(event.location)
   e.appendChild(location)
 
   return e
@@ -280,46 +293,72 @@ const renderEventJournal = (event, { useSymbol, eventTimeOptions, eventDateOptio
  * @param {Date} tm
  * @returns HTMLElement event DOM
  */
-const renderEventAgenda = (event, {useSymbol, eventTimeOptions, locale, useIconify}, tm = new Date())=> {
+const renderEventAgenda = (event, {useSymbol, eventTimeOptions, locale, useIconify, showMultidayEventsOnce, multidayRangeLabelOptions}, tm = new Date())=> {
   const e = renderEventDefault(event)
 
   const headline = document.createElement('div')
   headline.classList.add('headline')
   renderSymbol(headline, event, { useSymbol, useIconify })
 
-  const time = document.createElement('div')
-  time.classList.add('period')
+  if (showMultidayEventsOnce && event.isMultiday) {
+    const rangeOptions = multidayRangeLabelOptions ?? { month: 'short', day: 'numeric' }
+    const dateFmt = new Intl.DateTimeFormat(locale, rangeOptions)
+    const timeFmt = new Intl.DateTimeFormat(locale, eventTimeOptions)
+    const st = new Date(+event.startDate)
+    const et = new Date(+event.endDate)
 
-  const startTime = document.createElement('div')
-  const st = new Date(+event.startDate)
-  startTime.classList.add('time', 'startTime', (st.getDate() === tm.getDate()) ? 'inDay' : 'notInDay')
-  startTime.innerHTML = new Intl.DateTimeFormat(locale, eventTimeOptions).formatToParts(st).reduce((prev, cur, curIndex) => {
-    prev = prev + `<span class="eventTimeParts ${cur.type} seq_${curIndex}">${cur.value}</span>`
-    return prev
-  }, '')
-  headline.appendChild(startTime)
+    const formatParts = (fmt, d, prefix) => fmt.formatToParts(d).reduce((prev, cur, curIndex) => {
+      return prev + `<span class="eventTimeParts ${cur.type} seq_${prefix}_${curIndex}">${cur.value}</span>`
+    }, '')
 
-  const endTime = document.createElement('div')
-  const et = new Date(+event.endDate)
-  endTime.classList.add('time', 'endTime', (et.getDate() === tm.getDate()) ? 'inDay' : 'notInDay')
-  endTime.innerHTML = new Intl.DateTimeFormat(locale, eventTimeOptions).formatToParts(et).reduce((prev, cur, curIndex) => {
-    prev = prev + `<span class="eventTimeParts ${cur.type} seq_${curIndex}">${cur.value}</span>`
-    return prev
-  }, '')
-  headline.appendChild(endTime)
+    // Use startTime/endTime classes so existing ::after CSS separator applies automatically.
+    const startDateEl = document.createElement('div')
+    startDateEl.classList.add('time', 'startTime', 'inDay')
+    startDateEl.innerHTML = event.isFullday
+      ? formatParts(dateFmt, st, 'sd')
+      : formatParts(dateFmt, st, 'sd') + ' ' + formatParts(timeFmt, st, 'st')
+    headline.appendChild(startDateEl)
+
+    const endDateEl = document.createElement('div')
+    endDateEl.classList.add('time', 'endTime', 'inDay')
+    endDateEl.innerHTML = event.isFullday
+      ? formatParts(dateFmt, et, 'ed')
+      : formatParts(dateFmt, et, 'ed') + ' ' + formatParts(timeFmt, et, 'et')
+    headline.appendChild(endDateEl)
+  } else if (!event.isFullday) {
+    // Timed single-day events: show start/end times relative to the displayed day.
+    const startTime = document.createElement('div')
+    const st = new Date(+event.startDate)
+    startTime.classList.add('time', 'startTime', (st.getDate() === tm.getDate()) ? 'inDay' : 'notInDay')
+    startTime.innerHTML = new Intl.DateTimeFormat(locale, eventTimeOptions).formatToParts(st).reduce((prev, cur, curIndex) => {
+      prev = prev + `<span class="eventTimeParts ${cur.type} seq_${curIndex}">${cur.value}</span>`
+      return prev
+    }, '')
+    headline.appendChild(startTime)
+
+    const endTime = document.createElement('div')
+    const et = new Date(+event.endDate)
+    endTime.classList.add('time', 'endTime', (et.getDate() === tm.getDate()) ? 'inDay' : 'notInDay')
+    endTime.innerHTML = new Intl.DateTimeFormat(locale, eventTimeOptions).formatToParts(et).reduce((prev, cur, curIndex) => {
+      prev = prev + `<span class="eventTimeParts ${cur.type} seq_${curIndex}">${cur.value}</span>`
+      return prev
+    }, '')
+    headline.appendChild(endTime)
+  }
+  // Fullday single-day events: no time shown (startDate is always midnight).
 
   const title = document.createElement('div')
   title.classList.add('title')
-  title.innerHTML = event.title
+  title.textContent = normalizeEventText(event.title)
   headline.appendChild(title)
   e.appendChild(headline)
   const description = document.createElement('div')
   description.classList.add('description')
-  description.innerHTML = ensureString(event.description)
+  description.textContent = normalizeEventText(event.description)
   e.appendChild(description)
   const location = document.createElement('div')
   location.classList.add('location')
-  location.innerHTML = ensureString(event.location)
+  location.textContent = normalizeEventText(event.location)
   e.appendChild(location)
 
   return e
