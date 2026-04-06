@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.2.0](https://github.com/MMRIZE/CX3_Shared/compare/v1.1.1...v1.2.0) (2026-04-06)
+
+
+### Added
+
+* normalize event text fields and show date range for multiday events ([#20](https://github.com/MMRIZE/CX3_Shared/issues/20)) ([cfebb64](https://github.com/MMRIZE/CX3_Shared/commit/cfebb64c76680ee979d81effae8e881f8f041906))
+
+
+### Chores
+
+* update devDependencies ([b393618](https://github.com/MMRIZE/CX3_Shared/commit/b39361867a81c5fe6ae7481909f5f67f5206627f))
+
 ## [1.1.1](https://github.com/MMRIZE/CX3_Shared/compare/v1.1.0...v1.1.1) (2026-02-14)
 
 
