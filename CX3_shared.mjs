@@ -293,33 +293,59 @@ const renderEventJournal = (event, { useSymbol, eventTimeOptions, eventDateOptio
  * @param {Date} tm
  * @returns HTMLElement event DOM
  */
-const renderEventAgenda = (event, {useSymbol, eventTimeOptions, locale, useIconify}, tm = new Date())=> {
+const renderEventAgenda = (event, {useSymbol, eventTimeOptions, locale, useIconify, showMultidayEventsOnce, multidayRangeLabelOptions}, tm = new Date())=> {
   const e = renderEventDefault(event)
 
   const headline = document.createElement('div')
   headline.classList.add('headline')
   renderSymbol(headline, event, { useSymbol, useIconify })
 
-  const time = document.createElement('div')
-  time.classList.add('period')
+  if (showMultidayEventsOnce && event.isMultiday) {
+    const rangeOptions = multidayRangeLabelOptions ?? { month: 'short', day: 'numeric' }
+    const dateFmt = new Intl.DateTimeFormat(locale, rangeOptions)
+    const timeFmt = new Intl.DateTimeFormat(locale, eventTimeOptions)
+    const st = new Date(+event.startDate)
+    const et = new Date(+event.endDate)
 
-  const startTime = document.createElement('div')
-  const st = new Date(+event.startDate)
-  startTime.classList.add('time', 'startTime', (st.getDate() === tm.getDate()) ? 'inDay' : 'notInDay')
-  startTime.innerHTML = new Intl.DateTimeFormat(locale, eventTimeOptions).formatToParts(st).reduce((prev, cur, curIndex) => {
-    prev = prev + `<span class="eventTimeParts ${cur.type} seq_${curIndex}">${cur.value}</span>`
-    return prev
-  }, '')
-  headline.appendChild(startTime)
+    const formatParts = (fmt, d, prefix) => fmt.formatToParts(d).reduce((prev, cur, curIndex) => {
+      return prev + `<span class="eventTimeParts ${cur.type} seq_${prefix}_${curIndex}">${cur.value}</span>`
+    }, '')
 
-  const endTime = document.createElement('div')
-  const et = new Date(+event.endDate)
-  endTime.classList.add('time', 'endTime', (et.getDate() === tm.getDate()) ? 'inDay' : 'notInDay')
-  endTime.innerHTML = new Intl.DateTimeFormat(locale, eventTimeOptions).formatToParts(et).reduce((prev, cur, curIndex) => {
-    prev = prev + `<span class="eventTimeParts ${cur.type} seq_${curIndex}">${cur.value}</span>`
-    return prev
-  }, '')
-  headline.appendChild(endTime)
+    // Use startTime/endTime classes so existing ::after CSS separator applies automatically.
+    const startDateEl = document.createElement('div')
+    startDateEl.classList.add('time', 'startTime', 'inDay')
+    startDateEl.innerHTML = event.isFullday
+      ? formatParts(dateFmt, st, 'sd')
+      : formatParts(dateFmt, st, 'sd') + ' ' + formatParts(timeFmt, st, 'st')
+    headline.appendChild(startDateEl)
+
+    const endDateEl = document.createElement('div')
+    endDateEl.classList.add('time', 'endTime', 'inDay')
+    endDateEl.innerHTML = event.isFullday
+      ? formatParts(dateFmt, et, 'ed')
+      : formatParts(dateFmt, et, 'ed') + ' ' + formatParts(timeFmt, et, 'et')
+    headline.appendChild(endDateEl)
+  } else if (!event.isFullday) {
+    // Timed single-day events: show start/end times relative to the displayed day.
+    const startTime = document.createElement('div')
+    const st = new Date(+event.startDate)
+    startTime.classList.add('time', 'startTime', (st.getDate() === tm.getDate()) ? 'inDay' : 'notInDay')
+    startTime.innerHTML = new Intl.DateTimeFormat(locale, eventTimeOptions).formatToParts(st).reduce((prev, cur, curIndex) => {
+      prev = prev + `<span class="eventTimeParts ${cur.type} seq_${curIndex}">${cur.value}</span>`
+      return prev
+    }, '')
+    headline.appendChild(startTime)
+
+    const endTime = document.createElement('div')
+    const et = new Date(+event.endDate)
+    endTime.classList.add('time', 'endTime', (et.getDate() === tm.getDate()) ? 'inDay' : 'notInDay')
+    endTime.innerHTML = new Intl.DateTimeFormat(locale, eventTimeOptions).formatToParts(et).reduce((prev, cur, curIndex) => {
+      prev = prev + `<span class="eventTimeParts ${cur.type} seq_${curIndex}">${cur.value}</span>`
+      return prev
+    }, '')
+    headline.appendChild(endTime)
+  }
+  // Fullday single-day events: no time shown (startDate is always midnight).
 
   const title = document.createElement('div')
   title.classList.add('title')
