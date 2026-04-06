@@ -59,7 +59,7 @@ const normalizeEventText = (value, seen = new Set()) => {
   if (typeof value === 'object') {
     if (seen.has(value)) return ''
     seen.add(value)
-    const preferredKeys = ['value', 'val', 'text', 'plain', 'html', 'label', 'name', 'description', 'location']
+    const preferredKeys = ['value', 'val', 'text', 'plain', 'label', 'name', 'title']
     for (const key of preferredKeys) {
       if (Object.prototype.hasOwnProperty.call(value, key)) {
         return normalizeEventText(value[key], seen)
