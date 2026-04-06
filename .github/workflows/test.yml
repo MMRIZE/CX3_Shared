@@ -25,10 +25,10 @@ jobs:
         run: npm ci
 
       - name: Run unit tests
-        run: npm run test:unit
+        run: node --run test:unit
 
       - name: Run tests with coverage
         run: node --test --experimental-test-coverage
 
       - name: Run linter
-        run: npm run lint
+        run: node --run lint
