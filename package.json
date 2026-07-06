@@ -23,9 +23,9 @@
   "homepage": "https://github.com/MMRIZE/CX3_Shared#readme",
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "commit-and-tag-version": "^12.7.1",
-    "eslint": "^10.2.0",
-    "globals": "^17.4.0",
-    "happy-dom": "^20.8.9"
+    "commit-and-tag-version": "^12.7.3",
+    "eslint": "^10.6.0",
+    "globals": "^17.7.0",
+    "happy-dom": "^20.10.6"
   }
 }
