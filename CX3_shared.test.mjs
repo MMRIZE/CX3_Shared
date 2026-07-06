@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { regularizeEvents, prepareEvents } from './CX3_shared.mjs';
+import { getWeekNo, prepareEvents, regularizeEvents } from './CX3_shared.mjs';
 
 /**
  * Tests for date/timezone handling in formatEvents
@@ -149,6 +149,19 @@ test('fullday events should have correct "today" flag across timezones', () => {
   } finally {
     global.Date = originalDate;
   }
+});
+
+test('getWeekNo returns the previous year week number for early January spillover days', () => {
+  const options = {
+    firstDayOfWeek: 1,
+    minimalDaysOfNewYear: 4,
+  };
+
+  assert.strictEqual(
+    getWeekNo(new Date(2021, 0, 1), options),
+    53,
+    '2021-01-01 should still be in ISO week 53 of the previous year'
+  );
 });
 
 test('timezone-aware comparison works regardless of system timezone', () => {

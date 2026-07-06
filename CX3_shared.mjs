@@ -661,7 +661,7 @@ const getWeekNo = (d, options) => {
   const bow = getBeginOfWeek(d, options)
   let fw = getBeginOfWeek(new Date(d.getFullYear(), 0, options.minimalDaysOfNewYear), options)
   const nfw = getBeginOfWeek(new Date(d.getFullYear() + 1, 0, options.minimalDaysOfNewYear), options)
-  if (bow.getTime() < fw.getTime()) fw = getBeginOfWeek(new Date(d.getFullYear() - 1, 0, options.minimalDayosOfNewYear), options)
+  if (bow.getTime() < fw.getTime()) fw = getBeginOfWeek(new Date(d.getFullYear() - 1, 0, options.minimalDaysOfNewYear), options)
   let count = 1
   if (bow.getTime() === nfw.getTime()) return count
   const t = new Date(fw.getTime())
