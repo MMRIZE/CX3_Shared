@@ -1,6 +1,6 @@
-import { test } from 'node:test';
-import assert from 'node:assert';
-import { getWeekNo, isThisYear, prepareEvents, regularizeEvents } from './CX3_shared.mjs';
+import { test } from 'node:test'
+import assert from 'node:assert'
+import { getWeekNo, isThisYear, prepareEvents, regularizeEvents } from './CX3_shared.mjs'
 
 /**
  * Tests for date/timezone handling in formatEvents
@@ -11,21 +11,22 @@ test('event.today flag uses local date comparison correctly', () => {
   // This test verifies the fix works regardless of system timezone
   // by using times that are clearly on the same day in any reasonable timezone
 
-  const now = new Date('2026-01-26T12:00:00Z'); // Noon UTC
-  const originalDate = global.Date;
+  const now = new Date('2026-01-26T12:00:00Z') // Noon UTC
+  const originalDate = global.Date
 
   // Mock Date constructor to return our fixed time for "new Date()"
   global.Date = class extends originalDate {
     constructor(...args) {
       if (args.length === 0) {
-        return now;
+        return now
       }
-      return new originalDate(...args);
+      return new originalDate(...args)
     }
+
     static now() {
-      return now.getTime();
+      return now.getTime()
     }
-  };
+  }
 
   try {
     // Events clearly on same day (noon) and different day (2 days later)
@@ -34,73 +35,75 @@ test('event.today flag uses local date comparison correctly', () => {
       startDate: new Date('2026-01-26T14:00:00Z').getTime(), // Same day, 2 hours later
       endDate: new Date('2026-01-26T15:00:00Z').getTime(),
       fullDayEvent: false,
-      calendarSeq: 1
-    };
+      calendarSeq: 1,
+    }
 
     const differentDayEvent = {
       title: 'Different Day Event',
       startDate: new Date('2026-01-28T12:00:00Z').getTime(), // 2 days later
       endDate: new Date('2026-01-28T13:00:00Z').getTime(),
       fullDayEvent: false,
-      calendarSeq: 2
-    };
+      calendarSeq: 2,
+    }
 
     const config = {
       calendarSet: [],
       maxItems: 100,
-      maxDays: 90
-    };
+      maxDays: 90,
+    }
 
-    const eventPool = new Map();
-    eventPool.set('test-calendar', [sameDayEvent, differentDayEvent]);
+    const eventPool = new Map()
+    eventPool.set('test-calendar', [sameDayEvent, differentDayEvent])
 
-    const regularized = regularizeEvents({ eventPool, config });
+    const regularized = regularizeEvents({ eventPool, config })
     const prepared = prepareEvents({
       targetEvents: regularized,
       config,
-      range: [now.getTime(), now.getTime() + 7 * 24 * 60 * 60 * 1000]
-    });
+      range: [now.getTime(), now.getTime() + 7 * 24 * 60 * 60 * 1000],
+    })
 
-    const sameDay = prepared.find(e => e.title === 'Same Day Event');
-    const differentDay = prepared.find(e => e.title === 'Different Day Event');
+    const sameDay = prepared.find(e => e.title === 'Same Day Event')
+    const differentDay = prepared.find(e => e.title === 'Different Day Event')
 
     // With local date comparison, same day event should be marked as "today"
     assert.strictEqual(
       sameDay.today,
       true,
-      'Event on the same local day should be marked as today'
-    );
+      'Event on the same local day should be marked as today',
+    )
 
     // Event 2 days in the future should NOT be today
     assert.strictEqual(
       differentDay.today,
       false,
-      'Event on a different day should NOT be marked as today'
-    );
-  } finally {
-    // Restore original Date
-    global.Date = originalDate;
+      'Event on a different day should NOT be marked as today',
+    )
   }
-});
+  finally {
+    // Restore original Date
+    global.Date = originalDate
+  }
+})
 
 test('fullday events should have correct "today" flag across timezones', () => {
   // Fullday events have special handling in formatEvents (lines 366-371)
   // Test if the "today" flag is correct for fullday events
 
-  const now = new Date('2026-01-26T22:00:00Z'); // 22:00 UTC = 23:00 CET (Jan 26)
-  const originalDate = global.Date;
+  const now = new Date('2026-01-26T22:00:00Z') // 22:00 UTC = 23:00 CET (Jan 26)
+  const originalDate = global.Date
 
   global.Date = class extends originalDate {
     constructor(...args) {
       if (args.length === 0) {
-        return now;
+        return now
       }
-      return new originalDate(...args);
+      return new originalDate(...args)
     }
+
     static now() {
-      return now.getTime();
+      return now.getTime()
     }
-  };
+  }
 
   try {
     // Fullday event for Jan 27 (stored as timestamps)
@@ -109,26 +112,26 @@ test('fullday events should have correct "today" flag across timezones', () => {
       startDate: new Date('2026-01-27T00:00:00Z').getTime(), // Start of Jan 27 UTC
       endDate: new Date('2026-01-28T00:00:00Z').getTime(), // Start of Jan 28 UTC (24h later)
       fullDayEvent: true,
-      calendarSeq: 1
-    };
+      calendarSeq: 1,
+    }
 
     const config = {
       calendarSet: [],
       maxItems: 100,
-      maxDays: 90
-    };
+      maxDays: 90,
+    }
 
-    const eventPool = new Map();
-    eventPool.set('test-calendar', [fulldayEvent]);
+    const eventPool = new Map()
+    eventPool.set('test-calendar', [fulldayEvent])
 
-    const regularized = regularizeEvents({ eventPool, config });
+    const regularized = regularizeEvents({ eventPool, config })
     const prepared = prepareEvents({
       targetEvents: regularized,
       config,
-      range: [now.getTime(), now.getTime() + 7 * 24 * 60 * 60 * 1000]
-    });
+      range: [now.getTime(), now.getTime() + 7 * 24 * 60 * 60 * 1000],
+    })
 
-    const processedEvent = prepared[0];
+    const processedEvent = prepared[0]
 
     // In UTC+1 timezone at 23:00 local (22:00 UTC):
     // - Current date: Jan 26 local
@@ -144,52 +147,54 @@ test('fullday events should have correct "today" flag across timezones', () => {
     assert.strictEqual(
       processedEvent.today,
       false,
-      'Fullday event on Jan 27 should NOT be "today" when current time is Jan 26 23:00 local'
-    );
-  } finally {
-    global.Date = originalDate;
+      'Fullday event on Jan 27 should NOT be "today" when current time is Jan 26 23:00 local',
+    )
   }
-});
+  finally {
+    global.Date = originalDate
+  }
+})
 
 test('getWeekNo returns the previous year week number for early January spillover days', () => {
   const options = {
     firstDayOfWeek: 1,
     minimalDaysOfNewYear: 4,
-  };
+  }
 
   assert.strictEqual(
     getWeekNo(new Date(2021, 0, 1), options),
     53,
-    '2021-01-01 should still be in ISO week 53 of the previous year'
-  );
-});
+    '2021-01-01 should still be in ISO week 53 of the previous year',
+  )
+})
 
 test('isThisYear includes January and December only in the current year', () => {
-  const currentYear = new Date().getFullYear();
+  const currentYear = new Date().getFullYear()
 
-  assert.strictEqual(isThisYear(new Date(currentYear, 0, 1)), true);
-  assert.strictEqual(isThisYear(new Date(currentYear, 11, 31, 23, 59, 59, 999)), true);
-  assert.strictEqual(isThisYear(new Date(currentYear - 1, 11, 31, 23, 59, 59, 999)), false);
-});
+  assert.strictEqual(isThisYear(new Date(currentYear, 0, 1)), true)
+  assert.strictEqual(isThisYear(new Date(currentYear, 11, 31, 23, 59, 59, 999)), true)
+  assert.strictEqual(isThisYear(new Date(currentYear - 1, 11, 31, 23, 59, 59, 999)), false)
+})
 
 test('timezone-aware comparison works regardless of system timezone', () => {
   // This test verifies the fix works by checking behavior in the current system timezone
   // It doesn't simulate a different timezone, but proves the logic is correct
 
-  const now = new Date('2026-01-26T12:00:00Z'); // Noon UTC
-  const originalDate = global.Date;
+  const now = new Date('2026-01-26T12:00:00Z') // Noon UTC
+  const originalDate = global.Date
 
   global.Date = class extends originalDate {
     constructor(...args) {
       if (args.length === 0) {
-        return now;
+        return now
       }
-      return new originalDate(...args);
+      return new originalDate(...args)
     }
+
     static now() {
-      return now.getTime();
+      return now.getTime()
     }
-  };
+  }
 
   try {
     // Event clearly on a different day in local time
@@ -200,72 +205,74 @@ test('timezone-aware comparison works regardless of system timezone', () => {
       startDate: new Date('2026-01-28T12:00:00Z').getTime(), // 2 days later
       endDate: new Date('2026-01-28T13:00:00Z').getTime(),
       fullDayEvent: false,
-      calendarSeq: 1
-    };
+      calendarSeq: 1,
+    }
 
     const sameDayEvent = {
       title: 'Same Day Event',
       startDate: new Date('2026-01-26T14:00:00Z').getTime(), // Same day
       endDate: new Date('2026-01-26T15:00:00Z').getTime(),
       fullDayEvent: false,
-      calendarSeq: 2
-    };
+      calendarSeq: 2,
+    }
 
     const config = {
       calendarSet: [],
       maxItems: 100,
-      maxDays: 90
-    };
+      maxDays: 90,
+    }
 
-    const eventPool = new Map();
-    eventPool.set('test-calendar', [futureEvent, sameDayEvent]);
+    const eventPool = new Map()
+    eventPool.set('test-calendar', [futureEvent, sameDayEvent])
 
-    const regularized = regularizeEvents({ eventPool, config });
+    const regularized = regularizeEvents({ eventPool, config })
     const prepared = prepareEvents({
       targetEvents: regularized,
       config,
-      range: [now.getTime(), now.getTime() + 7 * 24 * 60 * 60 * 1000]
-    });
+      range: [now.getTime(), now.getTime() + 7 * 24 * 60 * 60 * 1000],
+    })
 
     // Find events
-    const future = prepared.find(e => e.title === 'Future Event');
-    const sameDay = prepared.find(e => e.title === 'Same Day Event');
+    const future = prepared.find(e => e.title === 'Future Event')
+    const sameDay = prepared.find(e => e.title === 'Same Day Event')
 
     // Verify: event 2 days in future should NOT be today
     assert.strictEqual(
       future.today,
       false,
-      'Event 2 days in future should NOT be marked as today'
-    );
+      'Event 2 days in future should NOT be marked as today',
+    )
 
     // Verify: event on same day should be today
     // Using local date comparison, both are Jan 26 in any normal timezone
     assert.strictEqual(
       sameDay.today,
       true,
-      'Event on same day should be marked as today'
-    );
-  } finally {
-    global.Date = originalDate;
+      'Event on same day should be marked as today',
+    )
   }
-});
+  finally {
+    global.Date = originalDate
+  }
+})
 
 test('edge case - event at exactly midnight local time', () => {
   // Test the exact moment of day transition
-  const now = new Date('2026-01-26T23:00:00Z'); // Exactly midnight CET (00:00 Jan 27 local)
-  const originalDate = global.Date;
+  const now = new Date('2026-01-26T23:00:00Z') // Exactly midnight CET (00:00 Jan 27 local)
+  const originalDate = global.Date
 
   global.Date = class extends originalDate {
     constructor(...args) {
       if (args.length === 0) {
-        return now;
+        return now
       }
-      return new originalDate(...args);
+      return new originalDate(...args)
     }
+
     static now() {
-      return now.getTime();
+      return now.getTime()
     }
-  };
+  }
 
   try {
     // Event at exactly midnight local time
@@ -274,26 +281,26 @@ test('edge case - event at exactly midnight local time', () => {
       startDate: new Date('2026-01-26T23:00:00Z').getTime(), // Exactly 00:00 CET
       endDate: new Date('2026-01-27T00:00:00Z').getTime(),
       fullDayEvent: false,
-      calendarSeq: 1
-    };
+      calendarSeq: 1,
+    }
 
     const config = {
       calendarSet: [],
       maxItems: 100,
-      maxDays: 90
-    };
+      maxDays: 90,
+    }
 
-    const eventPool = new Map();
-    eventPool.set('test-calendar', [midnightEvent]);
+    const eventPool = new Map()
+    eventPool.set('test-calendar', [midnightEvent])
 
-    const regularized = regularizeEvents({ eventPool, config });
+    const regularized = regularizeEvents({ eventPool, config })
     const prepared = prepareEvents({
       targetEvents: regularized,
       config,
-      range: [now.getTime(), now.getTime() + 7 * 24 * 60 * 60 * 1000]
-    });
+      range: [now.getTime(), now.getTime() + 7 * 24 * 60 * 60 * 1000],
+    })
 
-    const processedEvent = prepared[0];
+    const processedEvent = prepared[0]
 
     // Both current time and event time are at the same moment (midnight local)
     // In local time: both are Jan 27 00:00 CET
@@ -301,29 +308,31 @@ test('edge case - event at exactly midnight local time', () => {
     assert.strictEqual(
       processedEvent.today,
       true,
-      'Event starting at exactly midnight should be "today" when current time is also midnight'
-    );
-  } finally {
-    global.Date = originalDate;
+      'Event starting at exactly midnight should be "today" when current time is also midnight',
+    )
   }
-});
+  finally {
+    global.Date = originalDate
+  }
+})
 
 test('multi-day fullday event spanning today', () => {
   // Test a fullday event that started yesterday and ends tomorrow
-  const now = new Date('2026-01-27T12:00:00Z'); // Noon UTC on Jan 27
-  const originalDate = global.Date;
+  const now = new Date('2026-01-27T12:00:00Z') // Noon UTC on Jan 27
+  const originalDate = global.Date
 
   global.Date = class extends originalDate {
     constructor(...args) {
       if (args.length === 0) {
-        return now;
+        return now
       }
-      return new originalDate(...args);
+      return new originalDate(...args)
     }
+
     static now() {
-      return now.getTime();
+      return now.getTime()
     }
-  };
+  }
 
   try {
     // 3-day event: Jan 26-28
@@ -332,26 +341,26 @@ test('multi-day fullday event spanning today', () => {
       startDate: new Date('2026-01-26T00:00:00Z').getTime(),
       endDate: new Date('2026-01-29T00:00:00Z').getTime(),
       fullDayEvent: true,
-      calendarSeq: 1
-    };
+      calendarSeq: 1,
+    }
 
     const config = {
       calendarSet: [],
       maxItems: 100,
-      maxDays: 90
-    };
+      maxDays: 90,
+    }
 
-    const eventPool = new Map();
-    eventPool.set('test-calendar', [multiDayEvent]);
+    const eventPool = new Map()
+    eventPool.set('test-calendar', [multiDayEvent])
 
-    const regularized = regularizeEvents({ eventPool, config });
+    const regularized = regularizeEvents({ eventPool, config })
     const prepared = prepareEvents({
       targetEvents: regularized,
       config,
-      range: [now.getTime() - 7 * 24 * 60 * 60 * 1000, now.getTime() + 7 * 24 * 60 * 60 * 1000]
-    });
+      range: [now.getTime() - 7 * 24 * 60 * 60 * 1000, now.getTime() + 7 * 24 * 60 * 60 * 1000],
+    })
 
-    const processedEvent = prepared[0];
+    const processedEvent = prepared[0]
 
     // The event started on Jan 26 (in UTC), but "today" in UTC is Jan 27
     // The "today" flag checks startDate only, not whether event is currently running
@@ -359,75 +368,76 @@ test('multi-day fullday event spanning today', () => {
     assert.strictEqual(
       processedEvent.today,
       false,
-      'Multi-day event that started yesterday should NOT have today=true'
-    );
+      'Multi-day event that started yesterday should NOT have today=true',
+    )
 
     // But it should be marked as current (running now)
     assert.strictEqual(
       processedEvent.isCurrent,
       true,
-      'Multi-day event spanning today should be current'
-    );
-  } finally {
-    global.Date = originalDate;
+      'Multi-day event spanning today should be current',
+    )
   }
-});
+  finally {
+    global.Date = originalDate
+  }
+})
 
 test('regularizeEvents does not mutate pooled events through preProcessor', () => {
   const pooledEvent = {
     title: 'Original',
     details: { label: 'unchanged' },
     startDate: '2026-10-17T10:00:00Z',
-    endDate: '2026-10-17T11:00:00Z'
-  };
-  const eventPool = new Map([['test-calendar', [pooledEvent]]]);
-  const receivedDateType = [];
+    endDate: '2026-10-17T11:00:00Z',
+  }
+  const eventPool = new Map([['test-calendar', [pooledEvent]]])
+  const receivedDateType = []
   const config = {
     preProcessor: (event) => {
-      receivedDateType.push(typeof event.startDate);
-      event.title += '!';
-      event.details.label = 'changed';
-      return event;
-    }
-  };
+      receivedDateType.push(typeof event.startDate)
+      event.title += '!'
+      event.details.label = 'changed'
+      return event
+    },
+  }
 
-  const firstResult = regularizeEvents({ eventPool, config });
-  const secondResult = regularizeEvents({ eventPool, config });
+  const firstResult = regularizeEvents({ eventPool, config })
+  const secondResult = regularizeEvents({ eventPool, config })
 
-  assert.strictEqual(firstResult[0].title, 'Original!');
-  assert.strictEqual(secondResult[0].title, 'Original!');
-  assert.strictEqual(pooledEvent.title, 'Original');
-  assert.strictEqual(pooledEvent.details.label, 'unchanged');
-  assert.deepStrictEqual(receivedDateType, ['string', 'string']);
-});
+  assert.strictEqual(firstResult[0].title, 'Original!')
+  assert.strictEqual(secondResult[0].title, 'Original!')
+  assert.strictEqual(pooledEvent.title, 'Original')
+  assert.strictEqual(pooledEvent.details.label, 'unchanged')
+  assert.deepStrictEqual(receivedDateType, ['string', 'string'])
+})
 
 test('regularizeEvents computes duration from normalized ISO dates', () => {
   const eventPool = new Map([['test-calendar', [{
     startDate: '2026-10-17T10:00:00Z',
-    endDate: '2026-10-17T11:00:00Z'
-  }]]]);
+    endDate: '2026-10-17T11:00:00Z',
+  }]]])
 
-  const [event] = regularizeEvents({ eventPool, config: {} });
+  const [event] = regularizeEvents({ eventPool, config: {} })
 
-  assert.strictEqual(event.startDate, Date.parse('2026-10-17T10:00:00Z'));
-  assert.strictEqual(event.endDate, Date.parse('2026-10-17T11:00:00Z'));
-  assert.strictEqual(event.duration, 60 * 60 * 1000);
-});
+  assert.strictEqual(event.startDate, Date.parse('2026-10-17T10:00:00Z'))
+  assert.strictEqual(event.endDate, Date.parse('2026-10-17T11:00:00Z'))
+  assert.strictEqual(event.duration, 60 * 60 * 1000)
+})
 
 test('regularizeEvents preserves events from each calendar in pool order', () => {
   const eventPool = new Map([
     ['first', [{ title: 'First', calendarName: 'first', startDate: 1000, endDate: 2000 }]],
-    ['second', [{ title: 'Second', calendarName: 'second', startDate: 3000, endDate: 4000 }]]
-  ]);
+    ['second', [{ title: 'Second', calendarName: 'second', startDate: 3000, endDate: 4000 }]],
+  ])
 
   const events = regularizeEvents({
     eventPool,
-    config: { calendarSet: ['second', 'first'] }
-  });
+    config: { calendarSet: ['second', 'first'] },
+  })
 
-  assert.deepStrictEqual(events.map((event) => event.title), ['First', 'Second']);
-  assert.deepStrictEqual(events.map((event) => event.calendarSeq), [2, 1]);
-});
+  assert.deepStrictEqual(events.map(event => event.title), ['First', 'Second'])
+  assert.deepStrictEqual(events.map(event => event.calendarSeq), [2, 1])
+})
 
 test('prepareEvents excludes events outside its half-open range', () => {
   const targetEvents = [
@@ -435,13 +445,13 @@ test('prepareEvents excludes events outside its half-open range', () => {
     { title: 'overlaps-start', startDate: 1500, endDate: 2500, calendarSeq: 1 },
     { title: 'inside', startDate: 2500, endDate: 3500, calendarSeq: 1 },
     { title: 'overlaps-end', startDate: 3500, endDate: 4500, calendarSeq: 1 },
-    { title: 'after', startDate: 4000, endDate: 5000, calendarSeq: 1 }
-  ];
+    { title: 'after', startDate: 4000, endDate: 5000, calendarSeq: 1 },
+  ]
 
-  const prepared = prepareEvents({ targetEvents, config: {}, range: [2000, 4000] });
+  const prepared = prepareEvents({ targetEvents, config: {}, range: [2000, 4000] })
 
   assert.deepStrictEqual(
-    prepared.map((event) => event.title),
-    ['overlaps-start', 'inside', 'overlaps-end']
-  );
-});
+    prepared.map(event => event.title),
+    ['overlaps-start', 'inside', 'overlaps-end'],
+  )
+})

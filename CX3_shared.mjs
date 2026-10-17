@@ -2,7 +2,6 @@
  * @module CX3_shared
  */
 
-
 const MAGIC_IDENTIFIER = 'CX3_MAGIC'
 const ICONIFY_URL = 'https://code.iconify.design/iconify-icon/3.0.3/iconify-icon.min.js'
 
@@ -19,8 +18,8 @@ const magicPool = new Map()
 const getContrastYIQ = (rgba) => {
   const [r, g, b] = rgba.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d+\.{0,1}\d*))?\)$/).slice(1)
 
-  const yiq = ((r*299)+(g*587)+(b*114))/1000;
-  return (yiq >= 128) ? 'black' : 'white';
+  const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000
+  return (yiq >= 128) ? 'black' : 'white'
 }
 
 /**
@@ -35,12 +34,13 @@ const convertVarious2UnixTime = (unknown) => {
     if (unknown === null || unknown === undefined) return null
     const timestamp = new Date(unknown).getTime()
     if (Number.isNaN(timestamp)) {
-      console.log("CX3_shared.convertVarious2UnixTime : Incompatible date value", unknown)
+      console.log('CX3_shared.convertVarious2UnixTime : Incompatible date value', unknown)
       return null
     }
     return timestamp
-  } catch (e) {
-    console.error("CX3_shared.convertVarious2UnixTime : Invalid date value", unknown, e)
+  }
+  catch (e) {
+    console.error('CX3_shared.convertVarious2UnixTime : Invalid date value', unknown, e)
     return null
   }
 }
@@ -59,7 +59,7 @@ const normalizeEventText = (value, seen = new Set()) => {
   if (typeof value === 'string') return value
   if (typeof value === 'number' || typeof value === 'bigint') return String(value)
   if (Array.isArray(value)) {
-    return value.map((v) => normalizeEventText(v, seen)).filter(Boolean).join(', ')
+    return value.map(v => normalizeEventText(v, seen)).filter(Boolean).join(', ')
   }
   if (typeof value === 'object') {
     if (seen.has(value)) return ''
@@ -71,7 +71,7 @@ const normalizeEventText = (value, seen = new Set()) => {
       }
     }
     if (Object.prototype.hasOwnProperty.call(value, 'params')) return ''
-    const flattened = Object.values(value).map((v) => normalizeEventText(v, seen)).filter(Boolean)
+    const flattened = Object.values(value).map(v => normalizeEventText(v, seen)).filter(Boolean)
     if (!flattened.length) return ''
     if (flattened.length === 1) return flattened[0]
     return flattened.join(' | ')
@@ -90,7 +90,7 @@ const calendarFilter = (events = [], calendarSet = []) => {
   for (const ev of events) {
     if (calendarSet.length === 0 || calendarSet.includes(ev.calendarName)) {
       const event = structuredClone(ev)
-      event.calendarSeq = calendarSet.findIndex((name) => name === event.calendarName) + 1
+      event.calendarSeq = calendarSet.findIndex(name => name === event.calendarName) + 1
       const startDate = convertVarious2UnixTime(event.startDate)
       const endDate = convertVarious2UnixTime(event.endDate)
       event.duration = endDate - startDate
@@ -111,7 +111,7 @@ const addEventsToPool = ({ eventPool, sender, payload }) => {
  * @returns array of events
  */
 const regularizeEvents = ({ eventPool, config }) => {
-  const calendarSet = (Array.isArray(config.calendarSet)) ? [ ...config.calendarSet ] : []
+  const calendarSet = (Array.isArray(config.calendarSet)) ? [...config.calendarSet] : []
 
   let temp = []
 
@@ -208,18 +208,21 @@ const renderSymbol = (e, event, options) => {
           iconifyDom.icon = iconify
           iconifyDom.inline = true
           exDom.appendChild(iconifyDom)
-        } else { // fontawesome
+        }
+        else { // fontawesome
           const faDom = document.createElement('span')
           faDom.className = symbol
           exDom.appendChild(faDom)
         }
         e.classList.add('useSymbol')
-      } else {
+      }
+      else {
         exDom.classList.add('noSymbol')
       }
       e.appendChild(exDom)
     })
-  } else {
+  }
+  else {
     const exDom = document.createElement('span')
     exDom.classList.add('noSymbol', 'symbol')
     e.appendChild(exDom)
@@ -261,7 +264,6 @@ const renderEventJournal = (event, { useSymbol, eventTimeOptions, eventDateOptio
   headline.appendChild(title)
   e.appendChild(headline)
 
-
   const time = document.createElement('div')
   time.classList.add('period')
 
@@ -273,12 +275,11 @@ const renderEventJournal = (event, { useSymbol, eventTimeOptions, eventDateOptio
   const periodOptions = (inday) ? eventTimeOptions : { ...eventDateOptions, ...eventTimeOptions }
   const periodFormatter = new Intl.DateTimeFormat(locale, periodOptions)
   period.innerHTML = periodFormatter.formatRangeToParts(st, et)
-  .reduce((prev, cur, curIndex) => {
-    prev = prev + `<span class="eventTimeParts ${cur.type} seq_${curIndex}">${cur.value}</span>`
-    return prev
-  }, '')
+    .reduce((prev, cur, curIndex) => {
+      prev = prev + `<span class="eventTimeParts ${cur.type} seq_${curIndex}">${cur.value}</span>`
+      return prev
+    }, '')
   e.appendChild(period)
-
 
   const description = document.createElement('div')
   description.classList.add('description')
@@ -299,7 +300,7 @@ const renderEventJournal = (event, { useSymbol, eventTimeOptions, eventDateOptio
  * @param {Date} tm
  * @returns HTMLElement event DOM
  */
-const renderEventAgenda = (event, {useSymbol, eventTimeOptions, locale, useIconify, showMultidayEventsOnce, multidayRangeLabelOptions}, tm = new Date())=> {
+const renderEventAgenda = (event, { useSymbol, eventTimeOptions, locale, useIconify, showMultidayEventsOnce, multidayRangeLabelOptions }, tm = new Date()) => {
   const e = renderEventDefault(event)
 
   const headline = document.createElement('div')
@@ -331,7 +332,8 @@ const renderEventAgenda = (event, {useSymbol, eventTimeOptions, locale, useIconi
       ? formatParts(dateFmt, et, 'ed')
       : formatParts(dateFmt, et, 'ed') + ' ' + formatParts(timeFmt, et, 'et')
     headline.appendChild(endDateEl)
-  } else if (!event.isFullday) {
+  }
+  else if (!event.isFullday) {
     // Timed single-day events: show start/end times relative to the displayed day.
     const timeFmt = new Intl.DateTimeFormat(locale, eventTimeOptions)
     const startTime = document.createElement('div')
@@ -379,12 +381,13 @@ const renderEventAgenda = (event, {useSymbol, eventTimeOptions, locale, useIconi
 const oppositeMagic = (e, original) => {
   if (magicPool.has(original.color)) {
     original.oppositeColor = magicPool.get(original.color)
-  } else {
+  }
+  else {
     const magic = prepareMagic()
     magic.style.color = original.color
     const oppositeColor = getContrastYIQ(window.getComputedStyle(magic).getPropertyValue('color'))
     magicPool.set(original.color, oppositeColor)
-    original.oppositeColor = oppositeColor;
+    original.oppositeColor = oppositeColor
   }
   e.style.setProperty('--oppositeColor', original.oppositeColor)
 }
@@ -434,8 +437,6 @@ const formatEvents = ({ original, config }) => {
     return (a.startDate === b.startDate) ? ((a.endDate === b.endDate) ? a.calendarSeq - b.calendarSeq : b.endDate - a.endDate) : a.startDate - b.startDate
   })
 
-
-
   if (typeof config.eventFilter === 'function') {
     events = events.filter(config.eventFilter)
   }
@@ -467,7 +468,7 @@ const prepareEvents = ({ targetEvents, config, range }) => {
     return !(evs.endDate <= range[0] || evs.startDate >= range[1])
   })
 
-  return formatEvents({original: events, config})
+  return formatEvents({ original: events, config })
 }
 
 /**
@@ -483,7 +484,7 @@ const eventsByDate = ({ targetEvents, config, startTime, dayCounts }) => {
     const st = new Date(+ev.startDate)
     const et = new Date(+ev.endDate)
 
-    while(st.getTime() <= et.getTime()) {
+    while (st.getTime() <= et.getTime()) {
       const day = new Date(st.getFullYear(), st.getMonth(), st.getDate(), 0, 0, 0, 0).getTime()
       if (!days.has(day)) days.set(day, [])
       days.get(day).push(ev)
@@ -494,12 +495,12 @@ const eventsByDate = ({ targetEvents, config, startTime, dayCounts }) => {
 
   const startDay = new Date(+startTime).setHours(0, 0, 0, 0)
   const days = Array.from(ebd.keys()).sort()
-  const position = days.findIndex((d) => d >= startDay)
+  const position = days.findIndex(d => d >= startDay)
 
   return days.slice(position, position + dayCounts).map((d) => {
     return {
       date: d,
-      events: ebd.get(d)
+      events: ebd.get(d),
     }
   })
 }
@@ -554,7 +555,7 @@ const displayLegend = (dom, events, options = {}) => {
       name: ev.calendarName,
       color: ev.color ?? null,
       oppositeColor: ev.oppositeColor,
-      symbol: ev.symbol ?? []
+      symbol: ev.symbol ?? [],
     })
   }
   for (const l of legendData.values()) {
@@ -647,7 +648,7 @@ const isWeekend = (d, options) => {
  * @returns Date begin of week
  */
 const getBeginOfWeek = (d, options) => {
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate() - (d.getDay() - options.firstDayOfWeek + 7 ) % 7, 0, 0, 0, 0)
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate() - (d.getDay() - options.firstDayOfWeek + 7) % 7, 0, 0, 0, 0)
 }
 
 /**
@@ -677,7 +678,7 @@ const getWeekNo = (d, options) => {
   const t = new Date(fw.getTime())
   while (bow.getTime() > t.getTime()) {
     t.setDate(t.getDate() + 7)
-    count++;
+    count++
   }
   return count
 }
@@ -769,16 +770,15 @@ const makeWeatherDOM = (parentDom, forecasted) => {
   return parentDom
 }
 
-
 export {
   uid,
   loaded,
-  //initModule,
+  // initModule,
   prepareIconify,
   regularizeEvents,
   calendarFilter,
   addEventsToPool,
-  //scheduledRefresh,
+  // scheduledRefresh,
   prepareEvents,
   eventsByDate,
   renderEvent,
@@ -802,5 +802,5 @@ export {
   isMultiday,
   getRelativeDate,
   gapFromToday,
-  makeWeatherDOM
+  makeWeatherDOM,
 }
