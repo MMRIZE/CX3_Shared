@@ -1,21 +1,19 @@
 import { test } from 'node:test'
 import assert from 'node:assert'
 import { Window } from 'happy-dom'
+import { prepareIconify, renderEvent, renderEventAgenda, renderSymbol } from './CX3_shared.js'
 
 /**
  * Tests for iconify pattern support
  * Related to Issue #15: https://github.com/MMRIZE/CX3_Shared/issues/15
  */
 
-test('iconify alternative pattern: prefix--icon-name should work', async () => {
+test('iconify alternative pattern: prefix--icon-name should work', () => {
   // Mock DOM environment
   const window = new Window()
   global.document = window.document
   global.window = window
   global.customElements = window.customElements
-
-  // Import after DOM is set up
-  const { renderSymbol } = await import('./CX3_shared.js')
 
   // Create event with alternative iconify pattern
   const event = {
@@ -42,13 +40,11 @@ test('iconify alternative pattern: prefix--icon-name should work', async () => {
   assert.strictEqual(iconifyElement.inline, true, 'Icon should be inline')
 })
 
-test('iconify standard pattern: prefix:icon-name should still work', async () => {
+test('iconify standard pattern: prefix:icon-name should still work', () => {
   const window = new Window()
   global.document = window.document
   global.window = window
   global.customElements = window.customElements
-
-  const { renderSymbol } = await import('./CX3_shared.js')
 
   const event = {
     symbol: ['mdi:calendar'], // Standard pattern with colon
@@ -72,13 +68,11 @@ test('iconify standard pattern: prefix:icon-name should still work', async () =>
   )
 })
 
-test('iconify both patterns can be used together', async () => {
+test('iconify both patterns can be used together', () => {
   const window = new Window()
   global.document = window.document
   global.window = window
   global.customElements = window.customElements
-
-  const { renderSymbol } = await import('./CX3_shared.js')
 
   const event = {
     symbol: ['mdi:calendar', 'fa--home', 'tabler:bell'], // Mixed patterns
@@ -100,13 +94,11 @@ test('iconify both patterns can be used together', async () => {
   assert.strictEqual(iconifyElements[2].icon, 'tabler:bell', 'Third icon correct')
 })
 
-test('non-iconify symbols should fallback to fontawesome', async () => {
+test('non-iconify symbols should fallback to fontawesome', () => {
   const window = new Window()
   global.document = window.document
   global.window = window
   global.customElements = window.customElements
-
-  const { renderSymbol } = await import('./CX3_shared.js')
 
   const event = {
     symbol: ['fa fa-calendar'], // FontAwesome class (no : or --)
@@ -128,13 +120,12 @@ test('non-iconify symbols should fallback to fontawesome', async () => {
   assert.strictEqual(faElement.className, 'fa fa-calendar', 'FA classes preserved')
 })
 
-test('events with the same color reuse the contrast calculation', async () => {
+test('events with the same color reuse the contrast calculation', () => {
   const window = new Window()
   global.document = window.document
   global.window = window
   global.customElements = window.customElements
 
-  const { renderEvent } = await import('./CX3_shared.js')
   let computedStyleCalls = 0
   window.getComputedStyle = () => {
     computedStyleCalls++
@@ -154,13 +145,12 @@ test('events with the same color reuse the contrast calculation', async () => {
   assert.strictEqual(computedStyleCalls, 1)
 })
 
-test('agenda reuses one formatter for both event times', async () => {
+test('agenda reuses one formatter for both event times', () => {
   const window = new Window()
   global.document = window.document
   global.window = window
   global.customElements = window.customElements
 
-  const { renderEventAgenda } = await import('./CX3_shared.js')
   const originalDateTimeFormat = Intl.DateTimeFormat
   let formatterConstructions = 0
   Intl.DateTimeFormat = class extends originalDateTimeFormat {
@@ -201,13 +191,11 @@ test('agenda reuses one formatter for both event times', async () => {
   assert.strictEqual(formatterConstructions, 1)
 })
 
-test('prepareIconify loads the pinned current version', async () => {
+test('prepareIconify loads the pinned current version', () => {
   const window = new Window()
   global.document = window.document
   global.window = window
   global.customElements = window.customElements
-
-  const { prepareIconify } = await import('./CX3_shared.js')
 
   prepareIconify()
 
