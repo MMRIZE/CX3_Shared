@@ -19,7 +19,7 @@ const magicPool = new Map()
 const getContrastYIQ = (rgba) => {
   const [r, g, b] = rgba.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d+\.{0,1}\d*))?\)$/).slice(1)
 
-  var yiq = ((r*299)+(g*587)+(b*114))/1000;
+  const yiq = ((r*299)+(g*587)+(b*114))/1000;
   return (yiq >= 128) ? 'black' : 'white';
 }
 
