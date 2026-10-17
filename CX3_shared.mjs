@@ -378,6 +378,7 @@ const oppositeMagic = (e, original) => {
     const magic = prepareMagic()
     magic.style.color = original.color
     const oppositeColor = getContrastYIQ(window.getComputedStyle(magic).getPropertyValue('color'))
+    magicPool.set(original.color, oppositeColor)
     original.oppositeColor = oppositeColor;
   }
   e.style.setProperty('--oppositeColor', original.oppositeColor)

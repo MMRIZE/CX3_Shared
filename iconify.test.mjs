@@ -32,7 +32,7 @@ test('iconify alternative pattern: prefix--icon-name should work', async () => {
 
   // Find the iconify element
   const iconifyElement = eventDom.querySelector('iconify-icon');
-  
+
   assert.ok(iconifyElement, 'iconify-icon element should be created');
   assert.strictEqual(
     iconifyElement.icon,
@@ -63,7 +63,7 @@ test('iconify standard pattern: prefix:icon-name should still work', async () =>
   renderSymbol(eventDom, event, options);
 
   const iconifyElement = eventDom.querySelector('iconify-icon');
-  
+
   assert.ok(iconifyElement, 'iconify-icon element should be created');
   assert.strictEqual(
     iconifyElement.icon,
@@ -93,7 +93,7 @@ test('iconify both patterns can be used together', async () => {
   renderSymbol(eventDom, event, options);
 
   const iconifyElements = eventDom.querySelectorAll('iconify-icon');
-  
+
   assert.strictEqual(iconifyElements.length, 3, 'Should create 3 iconify elements');
   assert.strictEqual(iconifyElements[0].icon, 'mdi:calendar', 'First icon correct');
   assert.strictEqual(iconifyElements[1].icon, 'fa:home', 'Second icon converted from "--" to ":"');
@@ -122,8 +122,34 @@ test('non-iconify symbols should fallback to fontawesome', async () => {
 
   const iconifyElement = eventDom.querySelector('iconify-icon');
   const faElement = eventDom.querySelector('.fa.fa-calendar');
-  
+
   assert.strictEqual(iconifyElement, null, 'Should NOT create iconify element for FA class');
   assert.ok(faElement, 'Should create FontAwesome span element');
   assert.strictEqual(faElement.className, 'fa fa-calendar', 'FA classes preserved');
+});
+
+test('events with the same color reuse the contrast calculation', async () => {
+  const window = new Window();
+  global.document = window.document;
+  global.window = window;
+  global.customElements = window.customElements;
+
+  const { renderEvent } = await import('./CX3_shared.mjs');
+  let computedStyleCalls = 0;
+  window.getComputedStyle = () => {
+    computedStyleCalls++;
+    return { getPropertyValue: () => 'rgb(20, 30, 40)' };
+  };
+
+  const event = {
+    title: 'Cached color',
+    color: 'rgb(23, 47, 89)',
+    symbol: [],
+    fullDayEvent: false
+  };
+
+  renderEvent({ ...event }, { useSymbol: false, useIconify: false });
+  renderEvent({ ...event }, { useSymbol: false, useIconify: false });
+
+  assert.strictEqual(computedStyleCalls, 1);
 });
