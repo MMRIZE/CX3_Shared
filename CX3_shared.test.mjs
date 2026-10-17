@@ -58,7 +58,7 @@ test('event.today flag uses local date comparison correctly', () => {
     const prepared = prepareEvents({
       targetEvents: regularized,
       config,
-      range: { from: now.getTime(), to: now.getTime() + 7 * 24 * 60 * 60 * 1000 }
+      range: [now.getTime(), now.getTime() + 7 * 24 * 60 * 60 * 1000]
     });
 
     const sameDay = prepared.find(e => e.title === 'Same Day Event');
@@ -125,7 +125,7 @@ test('fullday events should have correct "today" flag across timezones', () => {
     const prepared = prepareEvents({
       targetEvents: regularized,
       config,
-      range: { from: now.getTime(), to: now.getTime() + 7 * 24 * 60 * 60 * 1000 }
+      range: [now.getTime(), now.getTime() + 7 * 24 * 60 * 60 * 1000]
     });
 
     const processedEvent = prepared[0];
@@ -224,7 +224,7 @@ test('timezone-aware comparison works regardless of system timezone', () => {
     const prepared = prepareEvents({
       targetEvents: regularized,
       config,
-      range: { from: now.getTime(), to: now.getTime() + 7 * 24 * 60 * 60 * 1000 }
+      range: [now.getTime(), now.getTime() + 7 * 24 * 60 * 60 * 1000]
     });
 
     // Find events
@@ -290,7 +290,7 @@ test('edge case - event at exactly midnight local time', () => {
     const prepared = prepareEvents({
       targetEvents: regularized,
       config,
-      range: { from: now.getTime(), to: now.getTime() + 7 * 24 * 60 * 60 * 1000 }
+      range: [now.getTime(), now.getTime() + 7 * 24 * 60 * 60 * 1000]
     });
 
     const processedEvent = prepared[0];
@@ -348,7 +348,7 @@ test('multi-day fullday event spanning today', () => {
     const prepared = prepareEvents({
       targetEvents: regularized,
       config,
-      range: { from: now.getTime() - 7 * 24 * 60 * 60 * 1000, to: now.getTime() + 7 * 24 * 60 * 60 * 1000 }
+      range: [now.getTime() - 7 * 24 * 60 * 60 * 1000, now.getTime() + 7 * 24 * 60 * 60 * 1000]
     });
 
     const processedEvent = prepared[0];
@@ -412,4 +412,21 @@ test('regularizeEvents computes duration from normalized ISO dates', () => {
   assert.strictEqual(event.startDate, Date.parse('2026-10-17T10:00:00Z'));
   assert.strictEqual(event.endDate, Date.parse('2026-10-17T11:00:00Z'));
   assert.strictEqual(event.duration, 60 * 60 * 1000);
+});
+
+test('prepareEvents excludes events outside its half-open range', () => {
+  const targetEvents = [
+    { title: 'before', startDate: 1000, endDate: 2000, calendarSeq: 1 },
+    { title: 'overlaps-start', startDate: 1500, endDate: 2500, calendarSeq: 1 },
+    { title: 'inside', startDate: 2500, endDate: 3500, calendarSeq: 1 },
+    { title: 'overlaps-end', startDate: 3500, endDate: 4500, calendarSeq: 1 },
+    { title: 'after', startDate: 4000, endDate: 5000, calendarSeq: 1 }
+  ];
+
+  const prepared = prepareEvents({ targetEvents, config: {}, range: [2000, 4000] });
+
+  assert.deepStrictEqual(
+    prepared.map((event) => event.title),
+    ['overlaps-start', 'inside', 'overlaps-end']
+  );
 });
