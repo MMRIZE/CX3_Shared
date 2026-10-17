@@ -4,7 +4,7 @@
 
 
 const MAGIC_IDENTIFIER = 'CX3_MAGIC'
-const ICONIFY_URL = 'https://code.iconify.design/iconify-icon/1.0.8/iconify-icon.min.js'
+const ICONIFY_URL = 'https://code.iconify.design/iconify-icon/3.0.3/iconify-icon.min.js'
 
 const loaded = true
 const uid = Date.now()

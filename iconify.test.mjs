@@ -199,3 +199,19 @@ test('agenda reuses one formatter for both event times', async () => {
 
   assert.strictEqual(formatterConstructions, 1);
 });
+
+test('prepareIconify loads the pinned current version', async () => {
+  const window = new Window();
+  global.document = window.document;
+  global.window = window;
+  global.customElements = window.customElements;
+
+  const { prepareIconify } = await import('./CX3_shared.mjs');
+
+  prepareIconify();
+
+  assert.strictEqual(
+    document.getElementById('iconify').getAttribute('src'),
+    'https://code.iconify.design/iconify-icon/3.0.3/iconify-icon.min.js'
+  );
+});
