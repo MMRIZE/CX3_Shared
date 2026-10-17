@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   types: [
     { type: 'feat', section: 'Added', hidden: false },
     { type: 'fix', section: 'Fixed', hidden: false },

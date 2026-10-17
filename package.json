@@ -2,7 +2,8 @@
   "name": "cx3_shared",
   "version": "1.2.1",
   "description": "CX3 Shared library",
-  "main": "CX3_Shared.mjs",
+  "type": "module",
+  "main": "CX3_shared.js",
   "scripts": {
     "release": "commit-and-tag-version --commit-all --config ./changelog.config.js",
     "test": "node --test && node --run lint",

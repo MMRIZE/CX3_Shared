@@ -15,7 +15,7 @@ test('iconify alternative pattern: prefix--icon-name should work', async () => {
   global.customElements = window.customElements
 
   // Import after DOM is set up
-  const { renderSymbol } = await import('./CX3_shared.mjs')
+  const { renderSymbol } = await import('./CX3_shared.js')
 
   // Create event with alternative iconify pattern
   const event = {
@@ -48,7 +48,7 @@ test('iconify standard pattern: prefix:icon-name should still work', async () =>
   global.window = window
   global.customElements = window.customElements
 
-  const { renderSymbol } = await import('./CX3_shared.mjs')
+  const { renderSymbol } = await import('./CX3_shared.js')
 
   const event = {
     symbol: ['mdi:calendar'], // Standard pattern with colon
@@ -78,7 +78,7 @@ test('iconify both patterns can be used together', async () => {
   global.window = window
   global.customElements = window.customElements
 
-  const { renderSymbol } = await import('./CX3_shared.mjs')
+  const { renderSymbol } = await import('./CX3_shared.js')
 
   const event = {
     symbol: ['mdi:calendar', 'fa--home', 'tabler:bell'], // Mixed patterns
@@ -106,7 +106,7 @@ test('non-iconify symbols should fallback to fontawesome', async () => {
   global.window = window
   global.customElements = window.customElements
 
-  const { renderSymbol } = await import('./CX3_shared.mjs')
+  const { renderSymbol } = await import('./CX3_shared.js')
 
   const event = {
     symbol: ['fa fa-calendar'], // FontAwesome class (no : or --)
@@ -134,7 +134,7 @@ test('events with the same color reuse the contrast calculation', async () => {
   global.window = window
   global.customElements = window.customElements
 
-  const { renderEvent } = await import('./CX3_shared.mjs')
+  const { renderEvent } = await import('./CX3_shared.js')
   let computedStyleCalls = 0
   window.getComputedStyle = () => {
     computedStyleCalls++
@@ -160,7 +160,7 @@ test('agenda reuses one formatter for both event times', async () => {
   global.window = window
   global.customElements = window.customElements
 
-  const { renderEventAgenda } = await import('./CX3_shared.mjs')
+  const { renderEventAgenda } = await import('./CX3_shared.js')
   const originalDateTimeFormat = Intl.DateTimeFormat
   let formatterConstructions = 0
   Intl.DateTimeFormat = class extends originalDateTimeFormat {
@@ -207,7 +207,7 @@ test('prepareIconify loads the pinned current version', async () => {
   global.window = window
   global.customElements = window.customElements
 
-  const { prepareIconify } = await import('./CX3_shared.mjs')
+  const { prepareIconify } = await import('./CX3_shared.js')
 
   prepareIconify()
 

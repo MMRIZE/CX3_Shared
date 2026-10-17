@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert'
-import { getWeekNo, isThisYear, prepareEvents, regularizeEvents } from './CX3_shared.mjs'
+import { getWeekNo, isThisYear, prepareEvents, regularizeEvents } from './CX3_shared.js'
 
 /**
  * Tests for date/timezone handling in formatEvents
