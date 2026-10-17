@@ -32,8 +32,13 @@ const convertVarious2UnixTime = (unknown) => {
   try {
     if (typeof unknown === 'number') return unknown
     if (typeof unknown === 'string' && unknown == +unknown) return +unknown
-    console.log("CX3_shared.convertVarious2UnixTime : Incompatible date value", unknown)
-    return new Date(unknown)?.getTime() || null
+    if (unknown === null || unknown === undefined) return null
+    const timestamp = new Date(unknown).getTime()
+    if (Number.isNaN(timestamp)) {
+      console.log("CX3_shared.convertVarious2UnixTime : Incompatible date value", unknown)
+      return null
+    }
+    return timestamp
   } catch (e) {
     console.error("CX3_shared.convertVarious2UnixTime : Invalid date value", unknown, e)
     return null
@@ -84,9 +89,12 @@ const calendarFilter = (events = [], calendarSet = []) => {
   const result = []
   for (const ev of events) {
     if (calendarSet.length === 0 || calendarSet.includes(ev.calendarName)) {
-      ev.calendarSeq = calendarSet.findIndex((name) => name === ev.calendarName) + 1
-      ev.duration = +ev.endDate - +ev.startDate
-      result.push(ev)
+      const event = structuredClone(ev)
+      event.calendarSeq = calendarSet.findIndex((name) => name === event.calendarName) + 1
+      const startDate = convertVarious2UnixTime(event.startDate)
+      const endDate = convertVarious2UnixTime(event.endDate)
+      event.duration = endDate - startDate
+      result.push(event)
     }
   }
   return result
@@ -117,17 +125,11 @@ const regularizeEvents = ({ eventPool, config }) => {
     // Remove any null/undefined events that may have been filtered out by the preprocessor
     temp = temp.filter(ev => ev != null)
   }
-  //rollback
-  return temp.map((ev) => {
-    ev.startDate = convertVarious2UnixTime(ev.startDate)
-    ev.endDate = convertVarious2UnixTime(ev.endDate)
-    /* //Unused : I forgot why I wrote this code...
-    if (ev.fullDayEvent) {
-      let st = new Date(+ev.startDate)
-      let et = new Date(+ev.endDate)
-    }
-    */
-    return ev
+  return temp.map((event) => {
+    event.startDate = convertVarious2UnixTime(event.startDate)
+    event.endDate = convertVarious2UnixTime(event.endDate)
+    event.duration = event.endDate - event.startDate
+    return event
   })
 }
 

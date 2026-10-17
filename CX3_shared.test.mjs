@@ -364,3 +364,44 @@ test('multi-day fullday event spanning today', () => {
     global.Date = originalDate;
   }
 });
+
+test('regularizeEvents does not mutate pooled events through preProcessor', () => {
+  const pooledEvent = {
+    title: 'Original',
+    details: { label: 'unchanged' },
+    startDate: '2026-10-17T10:00:00Z',
+    endDate: '2026-10-17T11:00:00Z'
+  };
+  const eventPool = new Map([['test-calendar', [pooledEvent]]]);
+  const receivedDateType = [];
+  const config = {
+    preProcessor: (event) => {
+      receivedDateType.push(typeof event.startDate);
+      event.title += '!';
+      event.details.label = 'changed';
+      return event;
+    }
+  };
+
+  const firstResult = regularizeEvents({ eventPool, config });
+  const secondResult = regularizeEvents({ eventPool, config });
+
+  assert.strictEqual(firstResult[0].title, 'Original!');
+  assert.strictEqual(secondResult[0].title, 'Original!');
+  assert.strictEqual(pooledEvent.title, 'Original');
+  assert.strictEqual(pooledEvent.details.label, 'unchanged');
+  assert.deepStrictEqual(receivedDateType, ['string', 'string']);
+});
+
+test('regularizeEvents computes duration from normalized ISO dates', () => {
+  const eventPool = new Map([['test-calendar', [{
+    startDate: '2026-10-17T10:00:00Z',
+    endDate: '2026-10-17T11:00:00Z'
+  }]]]);
+
+  const [event] = regularizeEvents({ eventPool, config: {} });
+
+  assert.strictEqual(event.startDate, Date.parse('2026-10-17T10:00:00Z'));
+  assert.strictEqual(event.endDate, Date.parse('2026-10-17T11:00:00Z'));
+  assert.strictEqual(event.duration, 60 * 60 * 1000);
+});
