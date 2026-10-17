@@ -153,3 +153,49 @@ test('events with the same color reuse the contrast calculation', async () => {
 
   assert.strictEqual(computedStyleCalls, 1);
 });
+
+test('agenda reuses one formatter for both event times', async () => {
+  const window = new Window();
+  global.document = window.document;
+  global.window = window;
+  global.customElements = window.customElements;
+
+  const { renderEventAgenda } = await import('./CX3_shared.mjs');
+  const originalDateTimeFormat = Intl.DateTimeFormat;
+  let formatterConstructions = 0;
+  Intl.DateTimeFormat = class extends originalDateTimeFormat {
+    constructor(...args) {
+      super(...args);
+      formatterConstructions++;
+    }
+  };
+  window.getComputedStyle = () => ({ getPropertyValue: () => 'rgb(20, 30, 40)' });
+
+  const eventTimeOptions = { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' };
+  const locale = 'es-ES-u-ca-gregory-nu-latn';
+  const options = {
+    useSymbol: false,
+    useIconify: false,
+    eventTimeOptions,
+    locale,
+    showMultidayEventsOnce: false
+  };
+  const event = {
+    title: 'Formatter reuse',
+    color: 'rgb(23, 47, 89)',
+    symbol: [],
+    fullDayEvent: false,
+    isFullday: false,
+    isMultiday: false,
+    startDate: Date.parse('2026-10-17T10:00:00Z'),
+    endDate: Date.parse('2026-10-17T11:00:00Z')
+  };
+
+  try {
+    renderEventAgenda({ ...event }, options, new Date(event.startDate));
+  } finally {
+    Intl.DateTimeFormat = originalDateTimeFormat;
+  }
+
+  assert.strictEqual(formatterConstructions, 1);
+});

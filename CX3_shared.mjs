@@ -270,7 +270,9 @@ const renderEventJournal = (event, { useSymbol, eventTimeOptions, eventDateOptio
   const et = new Date(+event.endDate)
   const inday = (et.getDate() === st.getDate() && et.getMonth() === st.getMonth() && et.getFullYear() === st.getFullYear())
   period.classList.add('time', (inday) ? 'inDay' : 'notInDay')
-  period.innerHTML = new Intl.DateTimeFormat(locale, (inday) ? eventTimeOptions : { ...eventDateOptions, ...eventTimeOptions }).formatRangeToParts(st, et)
+  const periodOptions = (inday) ? eventTimeOptions : { ...eventDateOptions, ...eventTimeOptions }
+  const periodFormatter = new Intl.DateTimeFormat(locale, periodOptions)
+  period.innerHTML = periodFormatter.formatRangeToParts(st, et)
   .reduce((prev, cur, curIndex) => {
     prev = prev + `<span class="eventTimeParts ${cur.type} seq_${curIndex}">${cur.value}</span>`
     return prev
@@ -331,10 +333,11 @@ const renderEventAgenda = (event, {useSymbol, eventTimeOptions, locale, useIconi
     headline.appendChild(endDateEl)
   } else if (!event.isFullday) {
     // Timed single-day events: show start/end times relative to the displayed day.
+    const timeFmt = new Intl.DateTimeFormat(locale, eventTimeOptions)
     const startTime = document.createElement('div')
     const st = new Date(+event.startDate)
     startTime.classList.add('time', 'startTime', (st.getDate() === tm.getDate()) ? 'inDay' : 'notInDay')
-    startTime.innerHTML = new Intl.DateTimeFormat(locale, eventTimeOptions).formatToParts(st).reduce((prev, cur, curIndex) => {
+    startTime.innerHTML = timeFmt.formatToParts(st).reduce((prev, cur, curIndex) => {
       prev = prev + `<span class="eventTimeParts ${cur.type} seq_${curIndex}">${cur.value}</span>`
       return prev
     }, '')
@@ -343,7 +346,7 @@ const renderEventAgenda = (event, {useSymbol, eventTimeOptions, locale, useIconi
     const endTime = document.createElement('div')
     const et = new Date(+event.endDate)
     endTime.classList.add('time', 'endTime', (et.getDate() === tm.getDate()) ? 'inDay' : 'notInDay')
-    endTime.innerHTML = new Intl.DateTimeFormat(locale, eventTimeOptions).formatToParts(et).reduce((prev, cur, curIndex) => {
+    endTime.innerHTML = timeFmt.formatToParts(et).reduce((prev, cur, curIndex) => {
       prev = prev + `<span class="eventTimeParts ${cur.type} seq_${curIndex}">${cur.value}</span>`
       return prev
     }, '')
@@ -404,6 +407,8 @@ const formatEvents = ({ original, config }) => {
   const duplicateSet = new Set()
 
   const thisMoment = new Date()
+  const dateKeyFormatter = new Intl.DateTimeFormat('en-CA')
+  const todayDateKey = dateKeyFormatter.format(thisMoment)
 
   let events = original.map((ev) => {
     ev.startDate = +ev.startDate
@@ -422,7 +427,7 @@ const formatEvents = ({ original, config }) => {
     const et = new Date(+ev.endDate)
     if (et.getHours() === 0 && et.getMinutes() === 0 && et.getSeconds() === 0 && et.getMilliseconds() === 0) ev.endDate = ev.endDate - 1
     ev.isMultiday = isMultiday(ev)
-    ev.today = thisMoment.toLocaleDateString("en-CA") === new Date(+ev.startDate).toLocaleDateString("en-CA")
+    ev.today = todayDateKey === dateKeyFormatter.format(new Date(+ev.startDate))
     ev.hash = simpleHash(ev.title + ev.startDate + ev.endDate)
     return ev
   }).toSorted((a, b) => {
