@@ -617,7 +617,7 @@ const isThisMonth = (d) => {
  */
 const isThisYear = (d) => {
   const tm = new Date()
-  const start = new Date(tm.getFullYear(), 1, 1)
+  const start = new Date(tm.getFullYear(), 0, 1)
   const end = new Date(tm.getFullYear(), 11, 31, 23, 59, 59, 999)
   return (d.getTime() >= start && d.getTime() <= end)
 }
