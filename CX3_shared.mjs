@@ -116,7 +116,9 @@ const regularizeEvents = ({ eventPool, config }) => {
   let temp = []
 
   for (const eventArrays of eventPool.values()) {
-    temp = [...temp, ...(calendarFilter(eventArrays, calendarSet))]
+    for (const event of calendarFilter(eventArrays, calendarSet)) {
+      temp.push(event)
+    }
   }
 
   if (typeof config.preProcessor === 'function') {

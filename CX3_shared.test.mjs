@@ -414,6 +414,21 @@ test('regularizeEvents computes duration from normalized ISO dates', () => {
   assert.strictEqual(event.duration, 60 * 60 * 1000);
 });
 
+test('regularizeEvents preserves events from each calendar in pool order', () => {
+  const eventPool = new Map([
+    ['first', [{ title: 'First', calendarName: 'first', startDate: 1000, endDate: 2000 }]],
+    ['second', [{ title: 'Second', calendarName: 'second', startDate: 3000, endDate: 4000 }]]
+  ]);
+
+  const events = regularizeEvents({
+    eventPool,
+    config: { calendarSet: ['second', 'first'] }
+  });
+
+  assert.deepStrictEqual(events.map((event) => event.title), ['First', 'Second']);
+  assert.deepStrictEqual(events.map((event) => event.calendarSeq), [2, 1]);
+});
+
 test('prepareEvents excludes events outside its half-open range', () => {
   const targetEvents = [
     { title: 'before', startDate: 1000, endDate: 2000, calendarSeq: 1 },
