@@ -2,6 +2,37 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.2.2](https://github.com/MMRIZE/CX3_Shared/compare/v1.2.1...v1.2.2) (2026-10-17)
+
+### Fixed
+
+* **dates:** include January in current year ([6e5917b](https://github.com/MMRIZE/CX3_Shared/commit/6e5917beea4f481f5999bf8c200e0798123cc703))
+* **events:** isolate pool and normalize dates ([36e4e7d](https://github.com/MMRIZE/CX3_Shared/commit/36e4e7dfd233566486a63f90bcdea6246faf5c11))
+
+### Performance Improvements
+
+* **dates:** avoid duplicate formatter creation ([9d7e38e](https://github.com/MMRIZE/CX3_Shared/commit/9d7e38ebed294596b1398f4dbe2a60f1c39e68f0))
+* **events:** avoid repeated array copies ([c4b41a2](https://github.com/MMRIZE/CX3_Shared/commit/c4b41a2f21ca9fdf8e64d2a8ba70727077db0631))
+* **events:** cache contrast colors ([e339534](https://github.com/MMRIZE/CX3_Shared/commit/e339534d18cc09184cb6ba4d5dad4c97725f3ee6))
+
+### Chores
+
+* add dependabot config ([178af9f](https://github.com/MMRIZE/CX3_Shared/commit/178af9fe1c2f951a323f67f31d02d046a5aaca44))
+* **iconify:** update CDN to 3.0.3 ([2c5a574](https://github.com/MMRIZE/CX3_Shared/commit/2c5a574d9c2ac16cf50dcabc25f6349a99a4b336))
+* update devDependencies ([a82bff6](https://github.com/MMRIZE/CX3_Shared/commit/a82bff63ee40c27e5b63a047a048881c1eb5bf2c))
+* update GitHub Actions ([fa6f515](https://github.com/MMRIZE/CX3_Shared/commit/fa6f515c69f6a29f74ace883f55db79bad46dc9e))
+
+### Code Refactoring
+
+* add stylistic ESLint rules and apply them ([3929552](https://github.com/MMRIZE/CX3_Shared/commit/3929552f53ac95ac1e6dfbc36ffcf5d5b15da1d7))
+* change var to const ([9396795](https://github.com/MMRIZE/CX3_Shared/commit/93967951e4115a4349e687a3fc8bc7ffeaf51c53))
+* switch ESM files to .js ([8d23b41](https://github.com/MMRIZE/CX3_Shared/commit/8d23b417e5eb98692892faaaf09125c57bfe623b))
+
+### Tests
+
+* **events:** fix range filtering coverage ([b94040a](https://github.com/MMRIZE/CX3_Shared/commit/b94040a4babaf47d47956f75095b8feea801a317))
+* **iconify:** use static shared imports ([14eef4a](https://github.com/MMRIZE/CX3_Shared/commit/14eef4ad94348cc39a3008e96cf06249d566d4da))
+
 ## [1.2.1](https://github.com/MMRIZE/CX3_Shared/compare/v1.2.0...v1.2.1) (2026-07-06)
 
 
