@@ -1,6 +1,6 @@
 {
   "name": "cx3_shared",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "CX3 Shared library",
   "type": "module",
   "main": "CX3_shared.js",

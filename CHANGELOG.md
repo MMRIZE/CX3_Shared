@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.2.3](https://github.com/MMRIZE/CX3_Shared/compare/v1.2.2...v1.2.3) (2026-10-19)
+
+### Fixed
+
+* **dates:** keep UTC-midnight fullday events on their calendar date ([63b3819](https://github.com/MMRIZE/CX3_Shared/commit/63b38196b839314ae817be5831f44b0831fab216))
+
+### Tests
+
+* **dates:** cover all-day events across DST ([091e872](https://github.com/MMRIZE/CX3_Shared/commit/091e872e814221bb547eb7d2c121ef1850bd50d0))
+* **dates:** cover fullday events in a timezone west of UTC ([892a103](https://github.com/MMRIZE/CX3_Shared/commit/892a103870b9b900daeb244d5dfb31cf85c1aa54))
+
 ## [1.2.2](https://github.com/MMRIZE/CX3_Shared/compare/v1.2.1...v1.2.2) (2026-10-17)
 
 ### Fixed
