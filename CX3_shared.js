@@ -423,8 +423,13 @@ const formatEvents = ({ original, config }) => {
     if (ev.isFullday) {
       const gap = +ev.endDate - +ev.startDate
       if (gap % (1000 * 60 * 60 * 24) === 0) {
-        ev.startDate = new Date(+ev.startDate).setHours(0, 0, 0, 0)
-        ev.endDate = new Date(+ev.startDate + gap).valueOf()
+        const s = new Date(+ev.startDate)
+        // Date-only values often arrive as UTC midnight; read that as the calendar date, not a local instant.
+        const start = (s.getTime() % (1000 * 60 * 60 * 24) === 0)
+          ? new Date(s.getUTCFullYear(), s.getUTCMonth(), s.getUTCDate())
+          : new Date(s.setHours(0, 0, 0, 0))
+        ev.startDate = start.getTime()
+        ev.endDate = new Date(start.getFullYear(), start.getMonth(), start.getDate() + gap / (1000 * 60 * 60 * 24)).getTime()
       }
     }
     const et = new Date(+ev.endDate)
